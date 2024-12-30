@@ -1,8 +1,3 @@
-//function cerrarSesion() {
-  // Cierra la sesión del usuario
-//  sessionStorage.clear();
-//  window.location.href = "index.html"; // Redirige a la página de inicio
-//}
 
 $(document).ready(function () {
   $('#fechaDVR').datepicker({
