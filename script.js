@@ -1,9 +1,83 @@
-// Inicialización de Datepickers y validación
-$(document).ready(function () {
-  // Establecer la localización en español
-  $.datepicker.setDefaults($.datepicker.regional['es']);
+// ========== EFECTO MATRIX ==========
+const matrixChars = "日ﾊﾐﾋｰｳｼﾅﾓﾆｻﾜﾂｵﾘｱﾎﾃﾏｹﾒｴｶｷﾑﾕﾗｾﾈｽﾀﾇﾍ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const matrixColumns = Math.floor(window.innerWidth / 20); // Una columna cada 20px
+const matrixSpeed = {
+  min: 3000, // 3 segundos (más lento)
+  max: 8000  // 8 segundos (más rápido)
+};
+
+function initMatrix() {
+  const container = document.getElementById('matrix-background');
+  if (!container) return;
   
-  // Configuración común para datepickers
+  container.innerHTML = '';
+  
+  // Crear columnas distribuidas uniformemente
+  for (let i = 0; i < matrixColumns; i++) {
+    createMatrixColumn(container, i);
+  }
+  
+  // Recrear columnas al redimensionar
+  window.addEventListener('resize', () => {
+    if (Date.now() - lastResize < 200) return;
+    lastResize = Date.now();
+    initMatrix();
+  });
+}
+
+let lastResize = 0;
+
+function createMatrixColumn(container, index) {
+  const column = document.createElement('div');
+  column.className = 'matrix-column';
+  
+  // Posición horizontal uniforme
+  column.style.left = `${(index * 100 / matrixColumns)}%`;
+  
+  // Velocidad aleatoria para cada columna
+  const speed = Math.random() * (matrixSpeed.max - matrixSpeed.min) + matrixSpeed.min;
+  column.style.animationDuration = `${speed}ms`;
+  
+  // Crear caracteres en la columna (entre 20 y 40 caracteres)
+  const charCount = 20 + Math.floor(Math.random() * 20);
+  for (let i = 0; i < charCount; i++) {
+    const char = document.createElement('div');
+    char.className = 'matrix-char';
+    char.textContent = matrixChars.charAt(Math.floor(Math.random() * matrixChars.length));
+    
+    // Efecto de desvanecimiento en la cola
+    if (i > charCount - 10) {
+      const opacity = 1 - (charCount - i) / 10;
+      char.style.opacity = opacity.toFixed(2);
+    }
+    
+    column.appendChild(char);
+  }
+  
+  container.appendChild(column);
+  
+  // Actualizar caracteres periódicamente
+  setInterval(() => {
+    updateColumnChars(column);
+  }, 100);
+}
+
+function updateColumnChars(column) {
+  const chars = column.querySelectorAll('.matrix-char');
+  chars.forEach(char => {
+    if (Math.random() > 0.85) { // 15% de probabilidad de cambiar
+      char.textContent = matrixChars.charAt(Math.floor(Math.random() * matrixChars.length));
+    }
+  });
+}
+
+// ========== CALCULADORA ==========
+$(document).ready(function () {
+  // Iniciar efecto Matrix
+  initMatrix();
+  
+  // Inicialización de Datepickers
+  $.datepicker.setDefaults($.datepicker.regional['es']);
   const datepickerOptions = {
     dateFormat: 'dd/mm/yy',
     autoclose: true,
@@ -13,46 +87,25 @@ $(document).ready(function () {
     yearRange: 'c-10:c+10'
   };
 
-  // Inicializar datepickers
   $('#fechaDVR, #fechaOficial, #nuevaFecha, #nuevaFecha2').datepicker(datepickerOptions);
 
-  // Validación y formateo de campos de hora
+  // Validación de campos de hora
   $('.timepicker').on('input', function () {
-    const $this = $(this);
-    let value = $this.val().replace(/\D/g, '');
-    
-    // Formatear automáticamente HH:mm:ss
+    let value = $(this).val().replace(/\D/g, '');
     if (value.length > 2) value = value.substring(0, 2) + ':' + value.substring(2);
     if (value.length > 5) value = value.substring(0, 5) + ':' + value.substring(5, 7);
-    
-    $this.val(value);
-    validateTimeField($this);
+    $(this).val(value);
   }).on('blur', function () {
-    const $this = $(this);
-    const value = $this.val();
-    
-    if (validateTimeField($this)) {
-      $this.val(formatTime(value));
-      autocompleteDate($this.attr('id'));
+    const value = $(this).val();
+    if (/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/.test(value)) {
+      $(this).val(formatTime(value));
+      autocompleteDate($(this).attr('id'));
     } else {
-      $this.val('');
+      $(this).val('');
     }
   });
-
-  // Iniciar animación del logo
-  moveLogoRandomly();
 });
 
-// Función para validar campo de hora
-function validateTimeField($field) {
-  const value = $field.val();
-  const isValid = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/.test(value);
-  
-  $field.toggleClass('invalid', !isValid && value.length > 0);
-  return isValid;
-}
-
-// Función para formatear hora
 function formatTime(value) {
   const parts = value.split(':');
   const hh = parts[0] ? parts[0].padStart(2, '0') : '00';
@@ -61,7 +114,6 @@ function formatTime(value) {
   return `${hh}:${mm}:${ss}`;
 }
 
-// Autocompletar fecha si está vacía
 function autocompleteDate(timepickerId) {
   const dateFields = {
     'horaDVR': 'fechaDVR',
@@ -75,7 +127,6 @@ function autocompleteDate(timepickerId) {
   }
 }
 
-// Validar campos requeridos antes de calcular
 function validateRequiredFields() {
   let isValid = true;
   const requiredFields = ['fechaDVR', 'horaDVR', 'fechaOficial', 'horaOficial'];
@@ -91,7 +142,6 @@ function validateRequiredFields() {
   return isValid;
 }
 
-// Sección 1: Calcular Diferencia entre DVR y Oficial
 function calcularDiferencia() {
   if (!validateRequiredFields()) {
     $('#resultado').html('<span class="retraso">Complete todos los campos requeridos</span>');
@@ -103,13 +153,6 @@ function calcularDiferencia() {
   const horaDvr = $('#horaDVR').val();
   const fechaOficial = $('#fechaOficial').val();
   const horaOficial = $('#horaOficial').val();
-
-  // Validar formato de hora
-  if (!validateTimeField($('#horaDVR')) || !validateTimeField($('#horaOficial'))) {
-    $('#resultado').html('<span class="retraso">Formato de hora inválido (HH:mm:ss)</span>');
-    $('#mensaje').html('');
-    return;
-  }
 
   try {
     const fechaHoraDvr = moment.utc(`${fechaDvr} ${horaDvr}`, 'DD/MM/YYYY HH:mm:ss');
@@ -156,7 +199,6 @@ function calcularDiferencia() {
   }
 }
 
-// Sección 2: Mostrar/Ocultar y Calcular Hora DVR
 function mostrarIngresoHoraOficial() {
   $('#ingresoHoraOficial').toggle();
   $('#ingresoHoraOficial2').hide();
@@ -196,7 +238,6 @@ function calcularNuevaHoraDvr() {
   }
 }
 
-// Sección 3: Mostrar/Ocultar y Calcular Hora Oficial
 function mostrarIngresoHoraOficial2() {
   $('#ingresoHoraOficial2').toggle();
   $('#ingresoHoraOficial').hide();
@@ -236,7 +277,6 @@ function calcularNuevaHora2() {
   }
 }
 
-// Función para limpiar el formulario
 function resetForm() {
   $('input[type="text"]').val('');
   $('.result p').empty();
@@ -244,129 +284,4 @@ function resetForm() {
   $('input').removeClass('invalid');
 }
 
-// Configuración del logo
-const logoConfig = {
-  baseSpeed: 3,
-  sizeVariation: true
-};
-
-// Estado del logo
-let logo = {
-  element: null,
-  position: { x: 0, y: 0 },
-  velocity: { x: 0, y: 0 },
-  animationId: null
-};
-
-// Iniciar movimiento
-function initLogo() {
-  logo.element = document.getElementById('floating-logo');
-  if (!logo.element) return;
-
-  placeLogoRandomly();
-  setRandomVelocity();
-  startAnimation();
-  window.addEventListener('resize', handleResize);
-}
-
-function placeLogoRandomly() {
-  const logoWidth = logo.element.offsetWidth;
-  const logoHeight = logo.element.offsetHeight;
-  logo.position = {
-    x: Math.random() * (window.innerWidth - logoWidth),
-    y: Math.random() * (window.innerHeight - logoHeight)
-  };
-  applyPosition();
-}
-
-function setRandomVelocity() {
-  const angle = Math.random() * Math.PI * 2;
-  const speed = logoConfig.baseSpeed * (0.8 + Math.random() * 0.4);
-  logo.velocity = {
-    x: Math.cos(angle) * speed,
-    y: Math.sin(angle) * speed
-  };
-}
-
-function applyPosition() {
-  logo.element.style.left = `${logo.position.x}px`;
-  logo.element.style.top = `${logo.position.y}px`;
-}
-
-function updatePosition() {
-  // Mover logo
-  logo.position.x += logo.velocity.x;
-  logo.position.y += logo.velocity.y;
-
-  // Detectar colisiones
-  checkWallCollisions();
-  
-  // Variaciones aleatorias
-  if (Math.random() < 0.03) {
-    logo.velocity.x *= (0.7 + Math.random() * 0.6);
-    logo.velocity.y *= (0.7 + Math.random() * 0.6);
-  }
-
-  applyPosition();
-  logo.animationId = requestAnimationFrame(updatePosition);
-}
-
-function checkWallCollisions() {
-  const windowWidth = window.innerWidth;
-  const windowHeight = window.innerHeight;
-  const logoWidth = logo.element.offsetWidth;
-  const logoHeight = logo.element.offsetHeight;
-
-  // Horizontal
-  if (logo.position.x + logoWidth >= windowWidth) {
-    logo.position.x = windowWidth - logoWidth;
-    logo.velocity.x = -Math.abs(logo.velocity.x) * (0.8 + Math.random() * 0.4);
-  } else if (logo.position.x <= 0) {
-    logo.position.x = 0;
-    logo.velocity.x = Math.abs(logo.velocity.x) * (0.8 + Math.random() * 0.4);
-  }
-
-  // Vertical
-  if (logo.position.y + logoHeight >= windowHeight) {
-    logo.position.y = windowHeight - logoHeight;
-    logo.velocity.y = -Math.abs(logo.velocity.y) * (0.8 + Math.random() * 0.4);
-  } else if (logo.position.y <= 0) {
-    logo.position.y = 0;
-    logo.velocity.y = Math.abs(logo.velocity.y) * (0.8 + Math.random() * 0.4);
-  }
-}
-
-function handleResize() {
-  const windowWidth = window.innerWidth;
-  const windowHeight = window.innerHeight;
-  const logoWidth = logo.element.offsetWidth;
-  const logoHeight = logo.element.offsetHeight;
-
-  // Ajustar posición si es necesario
-  logo.position.x = Math.max(0, Math.min(logo.position.x, windowWidth - logoWidth));
-  logo.position.y = Math.max(0, Math.min(logo.position.y, windowHeight - logoHeight));
-
-  // Invertir velocidad si es necesario
-  if (logo.position.x + logoWidth >= windowWidth) {
-    logo.velocity.x = -Math.abs(logo.velocity.x);
-  }
-  if (logo.position.y + logoHeight >= windowHeight) {
-    logo.velocity.y = -Math.abs(logo.velocity.y);
-  }
-
-  applyPosition();
-}
-
-function startAnimation() {
-  if (logo.animationId) cancelAnimationFrame(logo.animationId);
-  updatePosition();
-}
-
-// Inicialización
-document.addEventListener('DOMContentLoaded', initLogo);
-window.addEventListener('beforeunload', () => {
-  if (logo.animationId) cancelAnimationFrame(logo.animationId);
-});
-
-// Deshabilitar clic derecho
 document.addEventListener('contextmenu', e => e.preventDefault());
