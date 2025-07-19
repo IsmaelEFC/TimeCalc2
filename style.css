@@ -1,0 +1,308 @@
+/* 
+  ========================================
+  Variables CSS (Custom Properties)
+  ========================================
+*/
+:root {
+  --bg-gradient-start: #0d1b2a;
+  --bg-gradient-end: #000000;
+  --container-bg: rgba(27, 38, 59, 0.8);
+  --container-shadow: rgba(0, 0, 0, 0.3);
+  --text-primary: #e0e0e0;
+  --text-secondary: #fff;
+  --border-color: rgba(255, 255, 255, 0.2);
+  --input-bg: rgba(255, 255, 255, 0.1);
+
+  --primary-accent: #00b4d8; /* Azul eléctrico */
+  --warning-accent: #ffd166; /* Amarillo suave */
+  --info-accent: #06d6a0;   /* Verde menta */
+  --danger-accent: #ef476f;  /* Coral suave */
+  --dark-text-on-accent: #1a1a3d;
+
+  --shadow-light: rgba(0, 0, 0, 0.3);
+  --shadow-heavy: rgba(0, 0, 0, 0.5);
+  --muted-text-color: rgba(224, 224, 224, 0.6); /* Lighter muted text for dark theme */
+}
+
+/* 
+  ========================================
+  Definición del Tema Claro
+  ========================================
+*/
+[data-theme="light"] {
+  --bg-gradient-start: #e9ecef;
+  --bg-gradient-end: #ffffff;
+  --container-bg: rgba(255, 255, 255, 0.9);
+  --container-shadow: rgba(0, 0, 0, 0.1);
+  --text-primary: #212529;
+  --text-secondary: #495057;
+  --border-color: #dee2e6;
+  --input-bg: #ffffff;
+
+  /* Los colores de acento funcionan bien, pero ajustamos el texto sobre ellos si es necesario */
+  --dark-text-on-accent: #1a1a3d;
+
+  --shadow-light: rgba(0, 0, 0, 0.1);
+  --shadow-heavy: rgba(0, 0, 0, 0.15);
+  --muted-text-color: #6c757d; /* Default Bootstrap muted color for light theme */
+}
+
+
+/* 
+  ========================================
+  Estilos Generales y Tipografía
+  ========================================
+*/
+body {
+  font-family: "Roboto Condensed", sans-serif;
+  background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  margin: 0;
+  transition: background-color 0.5s ease;
+  padding: 1rem;
+}
+
+h1 {
+  text-align: center;
+  color: var(--text-primary);
+  text-shadow: 0 2px 5px var(--shadow-heavy);
+}
+
+h6 {
+  font-weight: bold;
+  text-align: center;
+  color: var(--info-accent);
+  margin-bottom: 15px;
+}
+
+h6 span {
+  font-weight: bolder;
+  color: var(--danger-accent);
+}
+
+/* Sobrescribir la clase .text-muted de Bootstrap para mejorar el contraste */
+.text-muted {
+  color: var(--muted-text-color) !important;
+}
+
+/* 
+  ========================================
+  Contenedor Principal
+  ========================================
+*/
+.container {
+  background: var(--container-bg);
+  backdrop-filter: blur(10px); /* Requiere soporte en navegadores modernos */
+  color: var(--text-secondary);
+  max-width: 600px;
+  width: 100%;
+  padding: 25px;
+  border-radius: 20px;
+  position: relative; /* Necesario para posicionar el interruptor de tema */
+  box-shadow: 0 4px 15px var(--container-shadow);
+  border: 1px solid var(--border-color);
+}
+
+/* 
+  ========================================
+  Formularios y Entradas
+  ========================================
+*/
+.form-control {
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  border-radius: 8px;
+  padding: 10px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-control:focus {
+  border-color: var(--primary-accent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--primary-accent) 50%, transparent);
+  outline: none;
+  background: var(--input-bg);
+  color: var(--text-secondary);
+}
+
+/* 
+  ========================================
+  Interruptor de Tema
+  ========================================
+*/
+.theme-switcher {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: var(--text-primary);
+  padding: 5px;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+/* 
+  ========================================
+  Botones
+  ========================================
+*/
+.btn {
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-weight: bold;
+  transition: transform 0.2s ease, background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px var(--shadow-light);
+}
+
+.btn-outline-primary {
+  border-color: var(--primary-accent);
+  color: var(--primary-accent);
+}
+
+.btn-outline-primary:hover {
+  background: var(--primary-accent);
+  color: var(--text-secondary);
+  border-color: var(--primary-accent);
+}
+
+.btn-outline-warning {
+  border-color: var(--warning-accent);
+  color: var(--warning-accent);
+}
+
+.btn-outline-warning:hover {
+  background: var(--warning-accent);
+  color: var(--dark-text-on-accent);
+  border-color: var(--warning-accent);
+}
+
+.btn-outline-info {
+  border-color: var(--info-accent);
+  color: var(--info-accent);
+}
+
+.btn-outline-info:hover {
+  background: var(--info-accent);
+  color: var(--text-secondary);
+  border-color: var(--info-accent);
+}
+  
+    /* Resultados y Diferencias */
+    .result, .difference {
+      margin-top: 20px;
+    }
+  
+    .difference {
+      font-weight: normal;
+      color: var(--warning-accent);
+    }
+  
+    .adelanto {
+      color: var(--info-accent);
+      text-shadow: 0 1px 3px var(--shadow-heavy);
+    }
+  
+    .retraso {
+      color: var(--danger-accent);
+      text-shadow: 0 1px 3px var(--shadow-heavy);
+    }
+  
+/* 
+  ========================================
+  Sobrescribir Estilos de jQuery UI Datepicker
+  ========================================
+*/
+    .ui-datepicker {
+      font-size: 16px;
+      width: 320px;
+      background: var(--container-bg);
+      backdrop-filter: blur(10px);
+      border: none;
+      border-radius: 15px;
+      box-shadow: 0 6px 20px var(--shadow-heavy);
+      color: var(--text-secondary);
+      padding: 15px;
+    }
+
+    [data-theme="light"] .ui-datepicker {
+      backdrop-filter: none;
+      border: 1px solid var(--border-color);
+    }
+  
+    .ui-datepicker-header {
+      background: linear-gradient(135deg, #00b4d8, #0077b6);
+      border: none;
+      padding: 12px;
+      text-align: center;
+      font-weight: bold;
+      color: var(--text-secondary);
+      border-radius: 10px 10px 0 0;
+      text-shadow: 0 1px 3px var(--shadow-light);
+    }
+  
+    [data-theme="light"] .ui-datepicker-header {
+      color: #fff; /* Mantenemos el texto blanco en el gradiente */
+    }
+
+    .ui-datepicker-prev, .ui-datepicker-next {
+      color: var(--text-secondary);
+      font-size: 18px;
+      cursor: pointer;
+    }
+  
+    .ui-datepicker-calendar {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: 0 0 10px 10px;
+    }
+  
+    .ui-datepicker-calendar th {
+      color: var(--text-primary);
+      padding: 8px;
+      font-weight: bold;
+      text-transform: uppercase;
+      font-size: 12px;
+    }
+  
+    .ui-datepicker-calendar td {
+      padding: 5px;
+      text-align: center;
+    }
+  
+    .ui-datepicker-calendar .ui-state-default {
+      background: var(--input-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      padding: 8px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+    }
+  
+    .ui-datepicker-calendar .ui-state-default:hover {
+      background: var(--primary-accent);
+      border-color: var(--primary-accent);
+      transform: scale(1.1);
+    }
+  
+    .ui-datepicker-calendar .ui-state-active {
+      background: var(--info-accent);
+      color: var(--text-secondary);
+      font-weight: bold;
+      border: none;
+      box-shadow: 0 0 10px color-mix(in srgb, var(--info-accent) 70%, transparent);
+    }
+  
+    .ui-datepicker-calendar .ui-state-highlight {
+      background: var(--warning-accent);
+      color: var(--dark-text-on-accent);
+      font-weight: bold;
+      border: none;
+    }
