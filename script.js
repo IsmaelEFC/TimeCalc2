@@ -1,3 +1,4 @@
+
 // Inicialización de Datepickers
 $(document).ready(function () {
   // Establecer la localización en español explícitamente
@@ -27,6 +28,7 @@ $(document).ready(function () {
     } else {
       $(this).val('');
     }
+    calcularDiferencia();
   });
 });
 
@@ -60,9 +62,9 @@ function calcularDiferencia() {
   const fechaOficial = $('#fechaOficial').val();
   const horaOficial = $('#horaOficial').val();
 
-  // Usar UTC para evitar ajustes de horario de verano
-  const fechaHoraDvr = moment.utc(`${fechaDvr} ${horaDvr}`, 'DD/MM/YYYY HH:mm:ss');
-  const fechaHoraOficial = moment.utc(`${fechaOficial} ${horaOficial}`, 'DD/MM/YYYY HH:mm:ss');
+  // Parsear como local para consistencia
+  const fechaHoraDvr = moment(`${fechaDvr} ${horaDvr}`, 'DD/MM/YYYY HH:mm:ss');
+  const fechaHoraOficial = moment(`${fechaOficial} ${horaOficial}`, 'DD/MM/YYYY HH:mm:ss');
   const diferencia = moment.duration(fechaHoraDvr.diff(fechaHoraOficial));
 
   const anos = Math.abs(diferencia.years());
@@ -99,27 +101,38 @@ function calcularDiferencia() {
 }
 
 // Sección 2: Mostrar/Ocultar y Calcular Hora DVR
+function mostrarIngresoHoraOficial() {
+  $('#ingresoHoraOficial').toggle();
+}
+
 function calcularNuevaHoraDvr() {
   const fechaDvr = $('#fechaDVR').val();
   const horaDvr = $('#horaDVR').val();
   const fechaOficial = $('#fechaOficial').val();
   const horaOficial = $('#horaOficial').val();
-  const nuevaFecha = $('#nuevaFecha').val(); // Fecha de ocurrencia del hecho
+  const nuevaFecha = $('#nuevaFecha').val();
   const nuevaHoraOficial = $('#nuevaHoraOficial').val();
 
   const fechaHoraDvr = moment(`${fechaDvr} ${horaDvr}`, 'DD/MM/YYYY HH:mm:ss');
   const fechaHoraOficial = moment(`${fechaOficial} ${horaOficial}`, 'DD/MM/YYYY HH:mm:ss');
   const nuevaFechaHoraOficial = moment(`${nuevaFecha} ${nuevaHoraOficial}`, 'DD/MM/YYYY HH:mm:ss');
-  const diferenciaSegundos = Math.abs(fechaHoraDvr.diff(fechaHoraOficial, 'seconds'));
 
-  const nuevaFechaHoraDvr = fechaHoraDvr.isBefore(fechaHoraOficial) ?
-    nuevaFechaHoraOficial.clone().subtract(diferenciaSegundos, 'seconds') :
-    nuevaFechaHoraOficial.clone().add(diferenciaSegundos, 'seconds');
+  const diffSeconds = fechaHoraDvr.diff(fechaHoraOficial, 'seconds');
+  const offsetCal = fechaHoraOficial.utcOffset();
+  const offsetNew = nuevaFechaHoraOficial.utcOffset();
+  const correctionSeconds = (offsetCal - offsetNew) * 60;
+  const totalAdjustSeconds = diffSeconds + correctionSeconds;
+
+  const nuevaFechaHoraDvr = nuevaFechaHoraOficial.clone().add(totalAdjustSeconds, 'seconds');
 
   $('#nuevoResultado').html(`La hora para buscar en DVR es: <span class='difference'>${nuevaFechaHoraDvr.format('DD/MM/YYYY HH:mm:ss')}</span>`);
 }
 
 // Sección 3: Mostrar/Ocultar y Calcular Hora Oficial
+function mostrarIngresoHoraOficial2() {
+  $('#ingresoHoraOficial2').toggle();
+}
+
 function calcularNuevaHora2() {
   const fechaDvr = $('#fechaDVR').val();
   const horaDvr = $('#horaDVR').val();
@@ -131,55 +144,18 @@ function calcularNuevaHora2() {
   const fechaHoraDvr = moment(`${fechaDvr} ${horaDvr}`, 'DD/MM/YYYY HH:mm:ss');
   const fechaHoraOficial = moment(`${fechaOficial} ${horaOficial}`, 'DD/MM/YYYY HH:mm:ss');
   const nuevaFechaHoraDvr = moment(`${nuevaFecha2} ${nuevaHoraOficial2}`, 'DD/MM/YYYY HH:mm:ss');
-  const diferenciaSegundos = Math.abs(fechaHoraDvr.diff(fechaHoraOficial, 'seconds'));
 
-  const nuevaFechaHoraOficial = fechaHoraDvr.isBefore(fechaHoraOficial) ?
-    nuevaFechaHoraDvr.clone().add(diferenciaSegundos, 'seconds') :
-    nuevaFechaHoraDvr.clone().subtract(diferenciaSegundos, 'seconds');
+  const diffSeconds = fechaHoraDvr.diff(fechaHoraOficial, 'seconds');
+  const offsetCal = fechaHoraOficial.utcOffset();
+  const offsetNew = nuevaFechaHoraDvr.utcOffset();
+  const correctionSeconds = (offsetNew - offsetCal) * 60;
+  const totalAdjustSeconds = -diffSeconds + correctionSeconds;
+
+  // Invertir la lógica: si en Sección 2 se suma, aquí se resta, y viceversa
+  const nuevaFechaHoraOficial = nuevaFechaHoraDvr.clone().add(-totalAdjustSeconds, 'seconds');
 
   $('#nuevoResultado2').html(`La hora Oficial es: <span class='difference'>${nuevaFechaHoraOficial.format('DD/MM/YYYY HH:mm:ss')}</span>`);
 }
-
-// Adjuntar eventos a los botones después de que el DOM esté cargado
-$(document).ready(function() {
-  // Botón para Calcular Desfase Inicial
-  $('#calcularDesfaseBtn').on('click', calcularDiferencia);
-
-  // Botones para las secciones de cálculo de hora
-  $('#calcularDvrTimeBtn').on('click', calcularNuevaHoraDvr);
-  $('#calcularOfficialTimeBtn').on('click', calcularNuevaHora2);
-
-  // Lógica del Interruptor de Tema
-  const themeSwitcher = $('#theme-switcher');
-  const body = $('body');
-  const icon = themeSwitcher.find('i');
-  const themeColorMeta = $('#theme-color-meta');
-
-  // Función para aplicar el tema
-  const applyTheme = (theme) => {
-    if (theme === 'light') {
-      body.attr('data-theme', 'light');
-      icon.removeClass('bi-moon-fill').addClass('bi-sun-fill');
-      themeColorMeta.attr('content', '#e9ecef'); // Color de fondo del tema claro
-      localStorage.setItem('theme', 'light');
-    } else {
-      body.removeAttr('data-theme');
-      icon.removeClass('bi-sun-fill').addClass('bi-moon-fill');
-      themeColorMeta.attr('content', '#0d1b2a'); // Color de fondo del tema oscuro
-      localStorage.setItem('theme', 'dark');
-    }
-  };
-
-  // Al cargar, aplicar el tema guardado o el predeterminado (oscuro)
-  const savedTheme = localStorage.getItem('theme') || 'dark';
-  applyTheme(savedTheme);
-
-  // Evento de clic para cambiar el tema
-  themeSwitcher.on('click', () => {
-    const currentTheme = body.attr('data-theme') ? 'light' : 'dark';
-    applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
-  });
-});
 
 // Deshabilitar clic derecho
 document.addEventListener('contextmenu', e => e.preventDefault());
